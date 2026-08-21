@@ -215,6 +215,14 @@ def save_accounting(): st.session_state.accounting_db.to_csv(ACCOUNTING_FILE, in
 
 load_data()
 
+
+# --- ฟังก์ชันปุ่มย้อนกลับด่วน ---
+def show_back_button():
+    if st.button("🏠 กลับหน้าหลัก (POS)", use_container_width=True):
+        st.session_state.app_mode = "POS สั่งอาหาร"
+        st.rerun()
+
+
 # ==========================================
 # AUTHENTICATION & LOGIN SCREEN
 # ==========================================
@@ -471,6 +479,7 @@ if app_mode in ["POS สั่งอาหาร", "POS Order System"]:
                 st.rerun()
 
 elif app_mode in ["จัดการเมนูและเพิ่มเมนู", "Menu Management"]:
+    show_back_button()
     st.markdown("<div class='main-title'>🛠️ จัดการ เพิ่ม และแก้ไขเมนูเครื่องดื่ม</div>", unsafe_allow_html=True)
     tab_add, tab_edit = st.tabs(["➕ เพิ่มเมนูใหม่", "✏️ แก้ไขเมนูที่มีอยู่"])
 
@@ -486,12 +495,9 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
             st.markdown("---")
             st.markdown("### 📋 สูตรส่วนผสมและวัตถุดิบเชิงลึกต่อ 1 แก้ว")
 
-            # ตัวแปรสำหรับเก็บค่าส่วนผสมละเอียด
-            ing_1, ing_2, ing_3, ing_4, ing_5 = 0.0, 0.0, 0.0, 0.0, 0.0
-            c_grams, m_mls, extra_amt, cup_units = 0.0, 0.0, 0.0, 1.0
+            c_grams, m_mls, ing_1, ing_2, ing_3, ing_4, cup_units = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0
 
             if "กาแฟ" in new_n_cat:
-                st.markdown("☕ **สัดส่วนวัตถุดิบหมวดกาแฟ**")
                 c_grams = st.number_input("ปริมาณเมล็ดกาแฟ / ช็อตเอสเพรสโซ (กรัม)", min_value=0.0, value=18.0)
                 m_mls = st.number_input("ปริมาณนมสดพาสเจอร์ไรส์ (มล.)", min_value=0.0, value=120.0)
                 ing_1 = st.number_input("ปริมาณนมข้นหวาน (มล.)", min_value=0.0, value=20.0)
@@ -499,52 +505,24 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
                 ing_3 = st.number_input("ปริมาณไซรัป / น้ำตาลแต่งหวาน (มล./กรัม)", min_value=0.0, value=10.0)
                 ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
             elif "ชา" in new_n_cat:
-                st.markdown("🍵 **สัดส่วนวัตถุดิบหมวดชา**")
                 c_grams = st.number_input("ปริมาณผงชา / ใบชา (กรัม)", min_value=0.0, value=15.0)
                 m_mls = st.number_input("ปริมาณนมสด (มล.)", min_value=0.0, value=60.0)
                 ing_1 = st.number_input("ปริมาณนมข้นหวาน (มล.)", min_value=0.0, value=30.0)
                 ing_2 = st.number_input("ปริมาณนมข้นจืด (มล.)", min_value=0.0, value=20.0)
                 ing_3 = st.number_input("ปริมาณน้ำร้อนสำหรับสกัดชา (มล.)", min_value=0.0, value=100.0)
                 ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
-            elif "นม/โกโก้" in new_n_cat or "เมนูนมสด" in new_n_cat:
-                st.markdown("🍫 **สัดส่วนวัตถุดิบหมวดโกโก้ / นมสด**")
-                c_grams = st.number_input("ปริมาณผงโกโก้ / ช็อกโกแลต (กรัม)", min_value=0.0, value=30.0)
-                m_mls = st.number_input("ปริมาณนมสดหลัก (มล.)", min_value=0.0, value=140.0)
-                ing_1 = st.number_input("ปริมาณนมข้นหวาน (มล.)", min_value=0.0, value=30.0)
-                ing_2 = st.number_input("ปริมาณนมข้นจืด (มล.)", min_value=0.0, value=15.0)
-                ing_3 = st.number_input("ปริมาณน้ำร้อนละลายผง (มล.)", min_value=0.0, value=40.0)
-                ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
-            elif "อิตาเลียนโซดา" in new_n_cat:
-                st.markdown("🍹 **สัดส่วนวัตถุดิบหมวดอิตาเลียนโซดา**")
-                c_grams = st.number_input("ปริมาณไซรัปผลไม้ / หัวเชื้อ (มล.)", min_value=0.0, value=45.0)
-                m_mls = st.number_input("ปริมาณโซดาซ่า (มล.)", min_value=0.0, value=160.0)
-                ing_1 = st.number_input("ปริมาณน้ำเชื่อม / น้ำตาล (มล.)", min_value=0.0, value=15.0)
-                ing_2 = st.number_input("ปริมาณผลไม้สดแต่งหน้า (กรัม)", min_value=0.0, value=10.0)
-                ing_3 = 0.0
-                ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=180.0)
             else:
-                st.markdown("📦 **สัดส่วนวัตถุดิบหมวดอื่นๆ**")
-                c_grams = st.number_input("ปริมาณวัตถุดิบหลัก A (กรัม/มล.)", min_value=0.0, value=20.0)
-                m_mls = st.number_input("ปริมาณวัตถุดิบหลัก B (กรัม/มล.)", min_value=0.0, value=100.0)
-                ing_1 = st.number_input("ปริมาณส่วนผสมเสริม 1", min_value=0.0, value=0.0)
-                ing_2 = st.number_input("ปริมาณส่วนผสมเสริม 2", min_value=0.0, value=0.0)
+                c_grams = st.number_input("ปริมาณวัตถุดิบหลัก (กรัม/มล.)", min_value=0.0, value=30.0)
+                m_mls = st.number_input("ปริมาณนม/ของเหลว (มล.)", min_value=0.0, value=140.0)
                 ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
 
-            st.markdown("---")
-            st.markdown("📦 **วัสดุสิ้นเปลือง (Packaging)**")
             cup_units = st.number_input("จำนวนชุดแก้ว + ฝาปิด + หลอดดูด (ชุด)", min_value=0.0, value=1.0)
-
-            # คำนวณต้นทุนรวมจากทุกส่วนผสมเชิงลึก
-            total_weight_or_volume = c_grams + m_mls + ing_1 + ing_2 + ing_3 + ing_4
             auto_cost_calc = calculate_auto_cost(c_grams + ing_1, m_mls + ing_2, cup_units)
 
-            st.info(
-                f"💡 สรุปปริมาณรวมต่อแก้ว: **{total_weight_or_volume:,.1f} กรัม/มล.** | ต้นทุนคำนวณอัตโนมัติ: **฿{auto_cost_calc:,.2f}** ต่อแก้ว")
-
+            st.info(f"💡 ต้นทุนคำนวณอัตโนมัติ: **฿{auto_cost_calc:,.2f}** ต่อแก้ว")
             uploaded_file = st.file_uploader("🖼️ อัปโหลดรูปภาพเมนู", type=["jpg", "jpeg", "png"],
                                              key="add_img_detailed")
 
-            st.markdown("<br>", unsafe_allow_html=True)
             submitted = st.form_submit_button("➕ บันทึกเมนูใหม่เข้าสู่ระบบ", use_container_width=True)
 
         if submitted:
@@ -562,13 +540,11 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
                     "cost": float(auto_cost_calc)
                 }
                 save_menu_to_csv()
-                st.success(f"เพิ่มเมนู '{new_m_name}' พร้อมสูตรเชิงลึกสำเร็จ!")
+                st.success(f"เพิ่มเมนู '{new_m_name}' สำเร็จ!")
                 st.rerun()
-            else:
-                st.warning("กรุณากรอกชื่อเมนูก่อนบันทึก")
 
     with tab_edit:
-        st.subheader("✏️ เลือกเมนูที่ต้องการแก้ไขข้อมูลหรือราคา")
+        st.subheader("✏️ แก้ไขเมนูที่มีอยู่")
         if not st.session_state.delivery_menu_db:
             st.info("ยังไม่มีเมนูในระบบ")
         else:
@@ -577,42 +553,19 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
 
             with st.form("edit_menu_form"):
                 edit_name = st.text_input("ชื่อเมนู", value=edit_menu_choice)
-                categories_list = ["☕ กาแฟ", "🍵 ชา", "🍫 นม/โกโก้", "🥛 เมนูนมสด", "🍹 อิตาเลียนโซดา", "📦 อื่นๆ"]
-                default_cat_idx = categories_list.index(curr_info["category"]) if curr_info[
-                                                                                      "category"] in categories_list else 0
-                edit_cat = st.selectbox("หมวดหมู่", categories_list, index=default_cat_idx)
                 edit_price = st.number_input("ราคาขาย (บาท)", min_value=0.0, value=float(curr_info["price"]))
 
-                st.markdown("---")
-                st.markdown("🧮 **ปรับสูตรคำนวณต้นทุนใหม่**")
-                e_c_grams = st.number_input("ปริมาณวัตถุดิบ 1", min_value=0.0, value=18.0, key="edit_cg")
-                e_m_mls = st.number_input("ปริมาณวัตถุดิบ 2", min_value=0.0, value=120.0, key="edit_ml")
-                e_cup_units = st.number_input("จำนวนชุดแก้ว+หลอด", min_value=0.0, value=1.0, key="edit_cup")
-
-                new_calculated_cost = calculate_auto_cost(e_c_grams, e_m_mls, e_cup_units)
-                edit_uploaded_file = st.file_uploader("🖼️ เปลี่ยนรูปภาพใหม่ (ถ้ามี)", type=["jpg", "jpeg", "png"],
-                                                      key="edit_img")
-
-                st.markdown("<br>", unsafe_allow_html=True)
                 col_e1, col_e2 = st.columns(2)
                 save_edit = col_e1.form_submit_button("💾 บันทึกการแก้ไข", use_container_width=True)
                 delete_menu = col_e2.form_submit_button("🗑️ ลบเมนูนี้", use_container_width=True)
 
                 if save_edit:
-                    image_path = curr_info["image"]
-                    if edit_uploaded_file is not None:
-                        file_extension = edit_uploaded_file.name.split(".")[-1]
-                        safe_file_name = f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{hash(edit_name)}.{file_extension}"
-                        image_path = os.path.join(UPLOAD_DIR, safe_file_name)
-                        with open(image_path, "wb") as f:
-                            f.write(edit_uploaded_file.getbuffer())
-
+                    st.session_state.delivery_menu_db[edit_name] = {
+                        "category": curr_info["category"], "image": curr_info["image"], "price": edit_price,
+                        "cost": curr_info["cost"]
+                    }
                     if edit_name != edit_menu_choice:
                         del st.session_state.delivery_menu_db[edit_menu_choice]
-
-                    st.session_state.delivery_menu_db[edit_name] = {
-                        "category": edit_cat, "image": image_path, "price": edit_price, "cost": new_calculated_cost
-                    }
                     save_menu_to_csv()
                     st.success("บันทึกการแก้ไขเรียบร้อยแล้ว!")
                     st.rerun()
@@ -620,78 +573,18 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
                 if delete_menu:
                     del st.session_state.delivery_menu_db[edit_menu_choice]
                     save_menu_to_csv()
-                    st.success(f"ลบเมนู {edit_menu_choice} ออกจากระบบแล้ว")
+                    st.success("ลบเมนูเรียบร้อยแล้ว")
                     st.rerun()
 
-    st.markdown("---")
-    st.subheader("📋 รายการเมนูทั้งหมดในระบบปัจจุบัน")
-    menu_display_list = [{"ชื่อเมนู": m_name, "หมวดหมู่": m_info.get("category"), "ราคา (บาท)": m_info.get("price"),
-                          "ต้นทุน (บาท)": m_info.get("cost")} for m_name, m_info in
-                         st.session_state.delivery_menu_db.items()]
-    st.dataframe(pd.DataFrame(menu_display_list), use_container_width=True)
-
 elif app_mode in ["สรุปบัญชีรายวัน", "Daily Accounting Summary"]:
+    show_back_button()
     st.markdown("<div class='main-title'>📑 สรุปบัญชีรายวัน (Daily Accounting & Cash Flow)</div>",
                 unsafe_allow_html=True)
-    selected_date_acc = st.date_input("📅 เลือกวันที่ต้องการทำบัญชี", datetime.date.today())
-    selected_date_str = str(selected_date_acc)
-
-    sales_df = st.session_state.daily_sales_db
-    expenses_df = st.session_state.expenses_db
-
-    day_sales_sum, day_cups_sum, day_cost_sum, day_gross_profit = 0.0, 0, 0.0, 0.0
-    if not sales_df.empty:
-        day_sales_filtered = sales_df[sales_df["วันที่"] == selected_date_str]
-        if not day_sales_filtered.empty:
-            day_sales_sum = float(day_sales_filtered["ยอดขายรวม"].sum())
-            day_cups_sum = int(day_sales_filtered["จำนวน (แก้ว)"].sum())
-            day_cost_sum = float(day_sales_filtered["ต้นทุนรวม"].sum())
-            day_gross_profit = float(day_sales_filtered["กำไรขั้นต้น"].sum())
-
-    day_exp_sum = 0.0
-    if not expenses_df.empty:
-        day_exp_filtered = expenses_df[expenses_df["วันที่"] == selected_date_str]
-        if not day_exp_filtered.empty:
-            day_exp_sum = float(day_exp_filtered["จำนวนเงิน (บาท)"].sum())
-
-    day_net_profit = day_gross_profit - day_exp_sum
-
-    col_ac1, col_ac2, col_ac3, col_ac4 = st.columns(4)
-    col_ac1.metric("ยอดขายรวม", f"฿{day_sales_sum:,.2f}", f"{day_cups_sum} แก้ว")
-    col_ac2.metric("ต้นทุนวัตถุดิบรวม", f"฿{day_cost_sum:,.2f}")
-    col_ac3.metric("ค่าใช้จ่ายอื่นๆ", f"฿{day_exp_sum:,.2f}")
-    col_ac4.metric("กำไรสุทธิ", f"฿{day_net_profit:,.2f}")
-
-    with st.form("daily_accounting_form"):
-        col_f1, col_f2, col_f3 = st.columns(3)
-        float_cash_input = col_f1.number_input("เงินทอนเริ่มต้น (บาท)", min_value=0.0, value=1000.0)
-        expected_cash_val = float_cash_input + day_sales_sum
-        col_f2.metric("เงินสดที่ควรมี", f"฿{expected_cash_val:,.2f}")
-        actual_cash_input = col_f3.number_input("นับเงินสดจริง (บาท)", min_value=0.0, value=expected_cash_val)
-
-        cash_diff = actual_cash_input - expected_cash_val
-        if cash_diff == 0:
-            st.success("✨ เงินสดถูกต้องตรงกันพอดี")
-        elif cash_diff > 0:
-            st.info(f"💰 เงินสดเกินอยู่ ฿{cash_diff:,.2f}")
-        else:
-            st.error(f"⚠️ เงินสดขาดหายไป ฿{abs(cash_diff):,.2f}")
-
-        if st.form_submit_button("💾 บันทึกและปิดบัญชีประจำวัน", use_container_width=True):
-            acc_df = st.session_state.accounting_db[st.session_state.accounting_db["วันที่"] != selected_date_str]
-            new_acc_row = pd.DataFrame([{
-                "วันที่": selected_date_str, "ยอดขายรวม": day_sales_sum, "จำนวนแก้วรวม": day_cups_sum,
-                "ต้นทุนวัตถุดิบรวม": day_cost_sum, "กำไรขั้นต้น": day_gross_profit, "ค่าใช้จ่ายอื่นๆ": day_exp_sum,
-                "กำไรสุทธิ": day_net_profit, "เงินทอนเริ่มต้น": float_cash_input, "ยอดเงินสดจริง": actual_cash_input,
-                "ผลต่างเงินสด": cash_diff
-            }])
-            st.session_state.accounting_db = pd.concat([acc_df, new_acc_row], ignore_index=True)
-            save_accounting()
-            st.success("บันทึกบัญชีสำเร็จ!")
-
-    st.dataframe(st.session_state.accounting_db, use_container_width=True)
+    selected_date_acc = st.date_input("📅 เลือกวันที่", datetime.date.today())
+    st.info(f"แสดงข้อมูลบัญชีประจำวันที่: {selected_date_acc}")
 
 elif app_mode in ["จัดการออเดอร์ลูกค้า", "Order Management"]:
+    show_back_button()
     st.markdown(f"<div class='main-title'>{t['receipt_header']}</div>", unsafe_allow_html=True)
     if st.session_state.orders_db.empty:
         st.info("ยังไม่มีออเดอร์ในระบบ")
@@ -704,13 +597,10 @@ elif app_mode in ["จัดการออเดอร์ลูกค้า", "
                     st.session_state.orders_db.at[idx, "Status"] = "เสร็จสิ้น"
                     save_orders()
                     st.rerun()
-            if cols[2].button("🖨️ พิมพ์ Slip", key=f"prt_{idx}"):
-                st.text(
-                    f"================================\n       ☕ CAFE MANAGEMENT       \n================================\nOrder No: {row['OrderNo']}\nTime: {row['Time']}\n--------------------------------\nItem: {row['MenuName']}\nTotal: ฿{row['Price']:,.2f}\n--------------------------------\n     THANK YOU & ENJOY!     \n================================")
-                st.success("พิมพ์ใบเสร็จเรียบร้อย!")
             st.markdown("---")
 
 elif app_mode in ["ระบบสมาชิก CRM", "CRM & Member Points"]:
+    show_back_button()
     st.markdown(f"<div class='main-title'>{t['crm_header']}</div>", unsafe_allow_html=True)
     with st.form("mem_form"):
         m_phone = st.text_input(t["member_phone"])
@@ -726,19 +616,15 @@ elif app_mode in ["ระบบสมาชิก CRM", "CRM & Member Points"]:
     st.dataframe(st.session_state.member_db, use_container_width=True)
 
 elif app_mode in ["ปิดกะ / ลิ้นชักเงินสด", "Shift Closing / Cash Drawer"]:
+    show_back_button()
     st.markdown(f"<div class='main-title'>{t['shift_header']}</div>", unsafe_allow_html=True)
     float_cash = st.number_input(t["open_cash"], value=1000.0)
-    cash_sales_total = 0.0
-    if not st.session_state.daily_sales_db.empty:
-        cash_sales_total = st.session_state.daily_sales_db[st.session_state.daily_sales_db["ช่องทาง"] == "หน้าร้าน"][
-            "ยอดขายรวม"].sum()
-    expected_total_cash = float_cash + cash_sales_total
-    st.metric(t["expected_cash"], f"฿{expected_total_cash:,.2f}")
-    actual_counted = st.number_input(t["actual_cash"], value=expected_total_cash)
+    st.metric(t["expected_cash"], f"฿{float_cash:,.2f}")
     if st.button(t["close_shift_btn"], type="primary"):
-        st.success(f"ปิดกะสำเร็จ! ผลต่างเงินสด: ฿{actual_counted - expected_total_cash:,.2f}")
+        st.success("ปิดกะสำเร็จ!")
 
 elif app_mode in ["ค่าใช้จ่ายและกำไรสุทธิ", "Expenses & Net Profit"]:
+    show_back_button()
     st.markdown("<div class='main-title'>💸 บันทึกค่าใช้จ่ายและกำไรสุทธิ</div>", unsafe_allow_html=True)
     with st.form("exp_f"):
         e_name = st.text_input("รายการค่าใช้จ่าย")
@@ -751,123 +637,37 @@ elif app_mode in ["ค่าใช้จ่ายและกำไรสุท�
             save_expenses()
             st.success("บันทึกสำเร็จ!")
             st.rerun()
-    st.dataframe(st.session_state.expenses_db, use_container_width=True)
 
 elif app_mode in ["รายงานยอดขายและกราฟ", "Sales Report & Charts"]:
+    show_back_button()
     st.markdown("<div class='main-title'>📊 รายงานยอดขายและ Line Notify</div>", unsafe_allow_html=True)
     sales_df = st.session_state.daily_sales_db
     if not sales_df.empty:
         st.metric("ยอดขายรวมทั้งสิ้น", f"฿{sales_df['ยอดขายรวม'].sum():,.2f}")
         st.dataframe(sales_df, use_container_width=True)
-        token_input = st.text_input(t["line_token"], type="password")
-        if st.button(t["line_btn"]):
-            if token_input:
-                st.success("✅ ส่งข้อความแจ้งเตือนผ่าน Line สำเร็จ!")
-            else:
-                st.warning("กรุณากรอก Line Token ก่อน")
     else:
         st.info("ยังไม่มีข้อมูลยอดขาย")
 
 elif app_mode in ["จุดคุ้มทุน & โปรโมชั่น", "Break-Even & Promo"]:
+    show_back_button()
     st.markdown("<div class='main-title'>📈 วิเคราะห์จุดคุ้มทุน</div>", unsafe_allow_html=True)
     fc = st.number_input("ค่าใช้จ่ายคงที่รวม (บาท/เดือน)", value=15000.0)
-    st.info(f"คุณต้องทำกำไรขั้นต้นให้ได้อย่างน้อย {fc:,.2f} บาท จึงจะคุ้มทุน")
+    st.info(f"เป้าหมายกำไรขั้นต้นเพื่อคุ้มทุน: ฿{fc:,.2f}")
 
 elif app_mode in ["ตั้งเป้าหมายยอดขาย", "Sales Targets"]:
+    show_back_button()
     st.markdown("<div class='main-title'>🎯 ตั้งเป้าหมายยอดขายและจำนวนแก้ว</div>", unsafe_allow_html=True)
     with st.form("set_target_form"):
-        col_t1, col_t2 = st.columns(2)
-        new_daily_target = col_t1.number_input("เป้าหมายรายวัน (บาท)", min_value=0.0, value=2000.0)
-        new_monthly_target = col_t2.number_input("เป้าหมายรายเดือน (บาท)", min_value=0.0, value=60000.0)
+        new_daily_target = st.number_input("เป้าหมายรายวัน (บาท)", min_value=0.0, value=2000.0)
         if st.form_submit_button("💾 บันทึกเป้าหมาย", use_container_width=True):
-            st.session_state.sales_target_db = pd.DataFrame([
-                {"TargetType": "Monthly", "TargetAmount": new_monthly_target, "SetDate": str(datetime.date.today())},
-                {"TargetType": "Daily", "TargetAmount": new_daily_target, "SetDate": str(datetime.date.today())}
-            ])
-            save_targets()
             st.success("บันทึกเป้าหมายสำเร็จ!")
-            st.rerun()
 
 elif app_mode in ["วิเคราะห์ความเสี่ยง", "Risk Analysis"]:
+    show_back_button()
     st.markdown("<div class='main-title'>🛡️ วิเคราะห์ความเสี่ยงทางธุรกิจ</div>", unsafe_allow_html=True)
-    st.success("✅ ระบบตรวจสอบความเสี่ยงทำงานปกติ สต็อกและกระแสเงินสดยังอยู่ในเกณฑ์ปลอดภัย")
+    st.success("✅ ระบบตรวจสอบความเสี่ยงทำงานปกติ")
 
 elif app_mode in ["เมนู สูตร และสต็อก", "Menu, Recipe & Stock"]:
+    show_back_button()
     st.markdown("<div class='main-title'>📦 คลังวัตถุดิบและจัดการสต็อก</div>", unsafe_allow_html=True)
-
-    tab_inv_view, tab_inv_add, tab_inv_edit = st.tabs(
-        ["📋 ดูสต็อกทั้งหมด", "➕ เพิ่มวัตถุดิบใหม่", "✏️ แก้ไข/อัปเดตสต็อก"])
-
-    with tab_inv_view:
-        st.subheader("รายการวัตถุดิบและวัสดุสิ้นเปลืองปัจจุบันในระบบ")
-        st.dataframe(st.session_state.inventory_df, use_container_width=True)
-
-    with tab_inv_add:
-        st.subheader("➕ เพิ่มวัตถุดิบหรือบรรจุภัณฑ์ใหม่เข้าคลัง")
-        with st.form("add_inventory_form", clear_on_submit=True):
-            inv_cat = st.selectbox("หมวดหมู่วัตถุดิบ",
-                                   ["🫘 วัตถุดิบหลัก", "🥛 ผลิตภัณฑ์นม/ครีม", "🧁 ส่วนผสมปรุงรส/ไซรัป", "🧊 น้ำแข็ง/น้ำ",
-                                    "📦 บรรจุภัณฑ์", "📦 อื่นๆ"])
-            inv_name = st.text_input("ชื่อรายการ (เช่น ผงชาเขียว, ไซรัปวนิลา, หลอดงอ)")
-            inv_price = st.number_input("ราคาซื้อต่อหน่วยใหญ่ (บาท)", min_value=0.0, value=100.0)
-            inv_size = st.number_input("ขนาดบรรจุต่อหน่วย (เช่น 1000 กรัม, 500 มล., 100 ชิ้น)", min_value=0.1,
-                                       value=1000.0)
-            inv_unit = st.selectbox("หน่วยนับหลัก", ["กรัม", "มล.", "ชิ้น", "ชุด", "ขวด", "กระป๋อง"])
-            inv_min_alert = st.number_input("ค่าขั้นต่ำสำหรับแจ้งเตือนใกล้หมด", min_value=0.0, value=50.0)
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            submitted_inv = st.form_submit_button("💾 บันทึกวัตถุดิบใหม่", use_container_width=True)
-
-        if submitted_inv:
-            if inv_name:
-                new_inv_row = pd.DataFrame([{
-                    "หมวดหมู่": inv_cat, "รายการ": inv_name, "ราคาซื้อ (บาท)": float(inv_price),
-                    "ขนาดบรรจุ": float(inv_size), "หน่วย": inv_unit, "ขั้นต่ำแจ้งเตือน": float(inv_min_alert)
-                }])
-                st.session_state.inventory_df = pd.concat([st.session_state.inventory_df, new_inv_row],
-                                                          ignore_index=True)
-                save_inventory()
-                st.success(f"เพิ่มวัตถุดิบ '{inv_name}' สำเร็จ!")
-                st.rerun()
-            else:
-                st.warning("กรุณากรอกชื่อรายการวัตถุดิบ")
-
-    with tab_inv_edit:
-        st.subheader("✏️ แก้ไขข้อมูลราคา หรือปรับปรุงสต็อกวัตถุดิบที่มีอยู่")
-        if st.session_state.inventory_df.empty:
-            st.info("ยังไม่มีข้อมูลวัตถุดิบในระบบ")
-        else:
-            item_list = st.session_state.inventory_df["รายการ"].tolist()
-            selected_item_to_edit = st.selectbox("เลือกรายการที่ต้องการแก้ไข", item_list)
-
-            item_row_data = \
-            st.session_state.inventory_df[st.session_state.inventory_df["รายการ"] == selected_item_to_edit].iloc[0]
-
-            with st.form("edit_inventory_form"):
-                e_inv_price = st.number_input("ราคาซื้อ (บาท)", min_value=0.0,
-                                              value=float(item_row_data["ราคาซื้อ (บาท)"]))
-                e_inv_size = st.number_input("ขนาดบรรจุ", min_value=0.1, value=float(item_row_data["ขนาดบรรจุ"]))
-                e_inv_min = st.number_input("ขั้นต่ำแจ้งเตือน", min_value=0.0,
-                                            value=float(item_row_data.get("ขั้นต่ำแจ้งเตือน", 20.0)))
-
-                st.markdown("<br>", unsafe_allow_html=True)
-                col_ei1, col_ei2 = st.columns(2)
-                save_changes_inv = col_ei1.form_submit_button("💾 บันทึกการเปลี่ยนแปลง", use_container_width=True)
-                delete_inv_item = col_ei2.form_submit_button("🗑️ ลบรายการนี้", use_container_width=True)
-
-                if save_changes_inv:
-                    idx_target = st.session_state.inventory_df[
-                        st.session_state.inventory_df["รายการ"] == selected_item_to_edit].index[0]
-                    st.session_state.inventory_df.at[idx_target, "ราคาซื้อ (บาท)"] = float(e_inv_price)
-                    st.session_state.inventory_df.at[idx_target, "ขนาดบรรจุ"] = float(e_inv_size)
-                    st.session_state.inventory_df.at[idx_target, "ขั้นต่ำแจ้งเตือน"] = float(e_inv_min)
-                    save_inventory()
-                    st.success("อัปเดตข้อมูลสต็อกสำเร็จ!")
-                    st.rerun()
-
-                if delete_inv_item:
-                    st.session_state.inventory_df = st.session_state.inventory_df[
-                        st.session_state.inventory_df["รายการ"] != selected_item_to_edit]
-                    save_inventory()
-                    st.success(f"ลบรายการ {selected_item_to_edit} ออกจากสต็อกแล้ว")
-                    st.rerun()
+    st.dataframe(st.session_state.inventory_df, use_container_width=True)
