@@ -12,7 +12,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- 1. CONFIG & GLOBAL CSS ---
 st.set_page_config(
-    page_title="Cafe Management Pro System",
+    page_title="99Coffee",
     page_icon="☕",
     layout="wide",
     initial_sidebar_state="expanded"
