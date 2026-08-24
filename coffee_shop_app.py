@@ -282,7 +282,7 @@ def deduct_inventory_on_sale(menu_name, category):
 # SIDEBAR NAVIGATION & SETTINGS
 # ==========================================
 with st.sidebar:
-    st.markdown("### ☕ Cafe Pro (Unlocked)")
+    st.markdown("### ☕ 99Coffee")
     selected_lang = st.selectbox("🌐 Language / เลือกภาษา:", ["TH", "EN"], index=0)
     t = LANG[selected_lang]
 
