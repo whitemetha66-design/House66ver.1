@@ -1,8 +1,14 @@
-import streamlit as st
-import pandas as pd
 import datetime
 import os
+import pandas as pd
+from supabase import Client, create_client
+import streamlit as st
 from streamlit_option_menu import option_menu
+
+SUPABASE_URL = "https://xfknhxhllbabbdwxlfbe.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhma25oeGhsbGJhYmJkd3hsZmJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0OTIyNjgsImV4cCI6MjEwMzA2ODI2OH0.SdR9A_0l-K6RKj-cT7kQ7G5JcX-7sDT-r1gQjA4mmwk"
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- 1. CONFIG & GLOBAL CSS ---
 st.set_page_config(
@@ -58,7 +64,7 @@ LANG = {
         "cart_title": "🛒 ตะกร้าสินค้า",
         "total_label": "รวมทั้งสิ้น",
         "pay_btn": "💳 ชำระเงิน & ออกใบเสร็จ",
-        "checkout_success": "ชำระเงินและบันทึกออเดอร์เรียบร้อยแล้ว!",
+        "checkout_success": "ชำระเงิน บันทึกออเดอร์ และตัดสต็อกวัตถุดิบเรียบร้อยแล้ว!",
         "crm_header": "⭐ ระบบสมาชิก & สะสมแต้ม",
         "member_phone": "เบอร์โทรศัพท์ลูกค้า (สมาชิก)",
         "member_name": "ชื่อลูกค้า",
@@ -84,7 +90,7 @@ LANG = {
         "cart_title": "🛒 Shopping Cart",
         "total_label": "Total",
         "pay_btn": "💳 Checkout & Print Receipt",
-        "checkout_success": "Checkout and order saved successfully!",
+        "checkout_success": "Checkout, order saved, and inventory deducted successfully!",
         "crm_header": "⭐ CRM & Member Points",
         "member_phone": "Customer Phone (Member)",
         "member_name": "Customer Name",
@@ -117,29 +123,16 @@ UPLOAD_DIR = "uploaded_images"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-
 def load_data():
     if "inventory_df" not in st.session_state:
         if os.path.exists(INV_FILE):
             st.session_state.inventory_df = pd.read_csv(INV_FILE)
         else:
             st.session_state.inventory_df = pd.DataFrame([
-                {"หมวดหมู่": "🫘 วัตถุดิบหลัก", "รายการ": "เมล็ดกาแฟ (Arabica)", "ราคาซื้อ (บาท)": 600.0,
-                 "ขนาดบรรจุ": 1000.0, "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 100.0},
-                {"หมวดหมู่": "🥛 วัตถุดิบหลัก", "รายการ": "นมสดพาสเจอร์ไรส์", "ราคาซื้อ (บาท)": 95.0,
-                 "ขนาดบรรจุ": 1000.0, "หน่วย": "มล.", "ขั้นต่ำแจ้งเตือน": 200.0},
-                {"หมวดหมู่": "🧋 วัตถุดิบหลัก", "รายการ": "ผงมัทฉะพรีเมียม", "ราคาซื้อ (บาท)": 450.0, "ขนาดบรรจุ": 100.0,
-                 "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 20.0},
-                {"หมวดหมู่": "🧋 วัตถุดิบหลัก", "รายการ": "ผงชาไทย", "ราคาซื้อ (บาท)": 140.0, "ขนาดบรรจุ": 400.0,
-                 "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 50.0},
-                {"หมวดหมู่": "🍫 วัตถุดิบหลัก", "รายการ": "ผงโกโก้พรีเมียม", "ราคาซื้อ (บาท)": 180.0, "ขนาดบรรจุ": 500.0,
-                 "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 50.0},
-                {"หมวดหมู่": "🧊 วัตถุดิบหลัก", "รายการ": "น้ำแข็ง / น้ำสะอาด", "ราคาซื้อ (บาท)": 50.0,
-                 "ขนาดบรรจุ": 20000.0, "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 2000.0},
-                {"หมวดหมู่": "🧁 ส่วนผสมปรุงรส", "รายการ": "นมข้นหวาน/นมข้นจืด", "ราคาซื้อ (บาท)": 55.0,
-                 "ขนาดบรรจุ": 380.0, "หน่วย": "มล.", "ขั้นต่ำแจ้งเตือน": 50.0},
-                {"หมวดหมู่": "📦 บรรจุภัณฑ์", "รายการ": "แก้ว PET 16 oz + ฝา + หลอด", "ราคาซื้อ (บาท)": 280.0,
-                 "ขนาดบรรจุ": 100.0, "หน่วย": "ชุด", "ขั้นต่ำแจ้งเตือน": 20.0}
+                {"หมวดหมู่": "🫘 วัตถุดิบหลัก", "รายการ": "เมล็ดกาแฟ (Arabica)", "ราคาซื้อ (บาท)": 600.0, "ขนาดบรรจุ": 1000.0, "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 100.0, "คงเหลือ": 800.0},
+                {"หมวดหมู่": "🥛 วัตถุดิบหลัก", "รายการ": "นมสดพาสเจอร์ไรส์", "ราคาซื้อ (บาท)": 95.0, "ขนาดบรรจุ": 1000.0, "หน่วย": "มล.", "ขั้นต่ำแจ้งเตือน": 200.0, "คงเหลือ": 900.0},
+                {"หมวดหมู่": "🧋 วัตถุดิบหลัก", "รายการ": "ผงมัทฉะพรีเมียม", "ราคาซื้อ (บาท)": 450.0, "ขนาดบรรจุ": 100.0, "หน่วย": "กรัม", "ขั้นต่ำแจ้งเตือน": 20.0, "คงเหลือ": 80.0},
+                {"หมวดหมู่": "📦 บรรจุภัณฑ์", "รายการ": "แก้ว PET 16 oz + ฝา + หลอด", "ราคาซื้อ (บาท)": 280.0, "ขนาดบรรจุ": 100.0, "หน่วย": "ชุด", "ขั้นต่ำแจ้งเตือน": 20.0, "คงเหลือ": 150.0}
             ])
 
     if "daily_sales_db" not in st.session_state:
@@ -147,22 +140,20 @@ def load_data():
             st.session_state.daily_sales_db = pd.read_csv(SALES_FILE)
         else:
             st.session_state.daily_sales_db = pd.DataFrame(columns=[
-                "วันที่", "เวลา", "หมวดหมู่", "เมนู", "ช่องทาง", "จำนวน (แก้ว)", "ราคาขาย/แก้ว", "ต้นทุน/แก้ว",
-                "ยอดขายรวม", "ต้นทุนรวม", "กำไรขั้นต้น", "สมาชิก"
+                "วันที่", "เวลา", "หมวดหมู่", "เมนู", "ช่องทาง", "จำนวน (แก้ว)", "ราคาขาย/แก้ว", "ต้นทุน/แก้ว", "ยอดขายรวม", "ต้นทุนรวม", "กำไรขั้นต้น", "สมาชิก"
             ])
 
     if "expenses_db" not in st.session_state:
         if os.path.exists(EXP_FILE):
             st.session_state.expenses_db = pd.read_csv(EXP_FILE)
         else:
-            st.session_state.expenses_db = pd.DataFrame(
-                columns=["วันที่", "รายการค่าใช้จ่าย", "หมวดหมู่", "จำนวนเงิน (บาท)"])
+            st.session_state.expenses_db = pd.DataFrame(columns=["วันที่", "รายการค่าใช้จ่าย", "หมวดหมู่", "จำนวนเงิน (บาท)"])
 
     if "orders_db" not in st.session_state:
         if os.path.exists(ORDERS_FILE):
             st.session_state.orders_db = pd.read_csv(ORDERS_FILE)
         else:
-            st.session_state.orders_db = pd.DataFrame(columns=["OrderNo", "Time", "MenuName", "Price", "Status"])
+            st.session_state.orders_db = pd.DataFrame(columns=["OrderNo", "Time", "CustomerName", "MenuName", "Price", "Status"])
 
     if "member_db" not in st.session_state:
         if os.path.exists(MEMBER_FILE):
@@ -184,76 +175,26 @@ def load_data():
             st.session_state.accounting_db = pd.read_csv(ACCOUNTING_FILE)
         else:
             st.session_state.accounting_db = pd.DataFrame(columns=[
-                "วันที่", "ยอดขายรวม", "จำนวนแก้วรวม", "ต้นทุนวัตถุดิบรวม", "กำไรขั้นต้น", "ค่าใช้จ่ายอื่นๆ",
-                "กำไรสุทธิ", "เงินทอนเริ่มต้น", "ยอดเงินสดจริง", "ผลต่างเงินสด"
+                "วันที่", "ยอดขายรวม", "จำนวนแก้วรวม", "ต้นทุนวัตถุดิบรวม", "กำไรขั้นต้น", "ค่าใช้จ่ายอื่นๆ", "กำไรสุทธิ", "เงินทอนเริ่มต้น", "ยอดเงินสดจริง", "ผลต่างเงินสด"
             ])
 
     if "cart" not in st.session_state:
         st.session_state.cart = []
 
-
 def save_inventory(): st.session_state.inventory_df.to_csv(INV_FILE, index=False)
-
-
 def save_sales(): st.session_state.daily_sales_db.to_csv(SALES_FILE, index=False)
-
-
 def save_expenses(): st.session_state.expenses_db.to_csv(EXP_FILE, index=False)
-
-
 def save_orders(): st.session_state.orders_db.to_csv(ORDERS_FILE, index=False)
-
-
 def save_members(): st.session_state.member_db.to_csv(MEMBER_FILE, index=False)
-
-
 def save_targets(): st.session_state.sales_target_db.to_csv(TARGET_FILE, index=False)
-
-
 def save_accounting(): st.session_state.accounting_db.to_csv(ACCOUNTING_FILE, index=False)
-
 
 load_data()
 
-
-# --- ฟังก์ชันปุ่มย้อนกลับด่วน ---
 def show_back_button():
     if st.button("🏠 กลับหน้าหลัก (POS)", use_container_width=True):
         st.session_state.app_mode = "POS สั่งอาหาร"
         st.rerun()
-
-
-# ==========================================
-# AUTHENTICATION & LOGIN SCREEN
-# ==========================================
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.user_role = "Barista"
-
-if not st.session_state.logged_in:
-    st.markdown(
-        "<div class='main-title' style='text-align: center; margin-top: 50px;'>☕ Cafe Management Pro - Login</div>",
-        unsafe_allow_html=True)
-    col_l1, col_l2, col_l3 = st.columns([1, 1, 1])
-    with col_l2:
-        with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            login_btn = st.form_submit_button("เข้าสู่ระบบ (Login)", use_container_width=True)
-            if login_btn:
-                if username == "admin" and password == "1234":
-                    st.session_state.logged_in = True
-                    st.session_state.user_role = "Owner"
-                    st.success("เข้าสู่ระบบในฐานะเจ้าของร้าน (Owner)")
-                    st.rerun()
-                elif username == "staff" and password == "1234":
-                    st.session_state.logged_in = True
-                    st.session_state.user_role = "Barista"
-                    st.success("เข้าสู่ระบบในฐานะพนักงานบาริสต้า (Barista)")
-                    st.rerun()
-                else:
-                    st.error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (Admin: admin/1234, Staff: staff/1234)")
-    st.stop()
 
 # ==========================================
 # MENU DATABASE & RECIPE ENGINE
@@ -274,20 +215,11 @@ if "delivery_menu_db" not in st.session_state:
             st.session_state.delivery_menu_db = {}
     else:
         st.session_state.delivery_menu_db = {
-            "Signature Latte": {"category": "☕ กาแฟ",
-                                "image": "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=300",
-                                "price": 80.0, "cost": 25.0},
-            "Dirty Coffee": {"category": "☕ กาแฟ",
-                             "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=300",
-                             "price": 95.0, "cost": 30.0},
-            "Chocolate Frappe": {"category": "🍫 นม/โกโก้",
-                                 "image": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300",
-                                 "price": 90.0, "cost": 28.0},
-            "นมสด": {"category": "🥛 เมนูนมสด",
-                     "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300", "price": 40.0,
-                     "cost": 20.0}
+            "Signature Latte": {"category": "☕ กาแฟ", "image": "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=300", "price": 80.0, "cost": 25.0},
+            "Dirty Coffee": {"category": "☕ กาแฟ", "image": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=300", "price": 95.0, "cost": 30.0},
+            "Chocolate Frappe": {"category": "🍫 นม/โกโก้", "image": "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300", "price": 90.0, "cost": 28.0},
+            "นมสด": {"category": "🥛 เมนูนมสด", "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300", "price": 40.0, "cost": 20.0}
         }
-
 
 def save_menu_to_csv():
     rows = []
@@ -301,7 +233,6 @@ def save_menu_to_csv():
         })
     pd.DataFrame(rows).to_csv(MENU_DB_FILE, index=False)
 
-
 def calculate_auto_cost(coffee_grams, milk_ml, cups_units):
     inv = st.session_state.inventory_df
     c_cost_per_g = 0.6
@@ -310,8 +241,7 @@ def calculate_auto_cost(coffee_grams, milk_ml, cups_units):
     try:
         coffee_row = inv[inv["รายการ"].str.contains("กาแฟ", na=False)]
         if not coffee_row.empty:
-            c_cost_per_g = float(coffee_row.iloc[0]["ราคาซื้อ (บาท)"]) / max(1.0,
-                                                                             float(coffee_row.iloc[0]["ขนาดบรรจุ"]))
+            c_cost_per_g = float(coffee_row.iloc[0]["ราคาซื้อ (บาท)"]) / max(1.0, float(coffee_row.iloc[0]["ขนาดบรรจุ"]))
         milk_row = inv[inv["รายการ"].str.contains("นมสด", na=False)]
         if not milk_row.empty:
             m_cost_per_ml = float(milk_row.iloc[0]["ราคาซื้อ (บาท)"]) / max(1.0, float(milk_row.iloc[0]["ขนาดบรรจุ"]))
@@ -322,36 +252,53 @@ def calculate_auto_cost(coffee_grams, milk_ml, cups_units):
         pass
     return round((coffee_grams * c_cost_per_g) + (milk_ml * m_cost_per_ml) + (cups_units * cup_cost_unit), 2)
 
+def deduct_inventory_on_sale(menu_name, category):
+    inv = st.session_state.inventory_df
+    coffee_use = 18.0 if "กาแฟ" in category or "Latte" in menu_name or "Dirty" in menu_name else 0.0
+    milk_use = 120.0 if "นม" in category or "Latte" in menu_name or "Chocolate" in menu_name else 50.0
+    cup_use = 1.0
+
+    if coffee_use > 0:
+        c_idx = inv[inv["รายการ"].str.contains("กาแฟ", na=False)].index
+        if not c_idx.empty:
+            current_val = float(inv.at[c_idx[0], "คงเหลือ"])
+            inv.at[c_idx[0], "คงเหลือ"] = max(0.0, current_val - coffee_use)
+
+    if milk_use > 0:
+        m_idx = inv[inv["รายการ"].str.contains("นมสด", na=False)].index
+        if not m_idx.empty:
+            current_val = float(inv.at[m_idx[0], "คงเหลือ"])
+            inv.at[m_idx[0], "คงเหลือ"] = max(0.0, current_val - milk_use)
+
+    cup_idx = inv[inv["รายการ"].str.contains("แก้ว", na=False)].index
+    if not cup_idx.empty:
+        current_val = float(inv.at[cup_idx[0], "คงเหลือ"])
+        inv.at[cup_idx[0], "คงเหลือ"] = max(0.0, current_val - cup_use)
+
+    st.session_state.inventory_df = inv
+    save_inventory()
 
 # ==========================================
 # SIDEBAR NAVIGATION & SETTINGS
 # ==========================================
 with st.sidebar:
-    st.markdown(f"### ☕ Cafe Pro ({st.session_state.user_role})")
+    st.markdown("### ☕ Cafe Pro (Unlocked)")
     selected_lang = st.selectbox("🌐 Language / เลือกภาษา:", ["TH", "EN"], index=0)
     t = LANG[selected_lang]
 
-    if st.button("🚪 ออกจากระบบ (Logout)", use_container_width=True):
-        st.session_state.logged_in = False
-        st.rerun()
-
     st.markdown("---")
 
-    if st.session_state.user_role == "Owner":
-        menu_options = [
-            "POS สั่งอาหาร", "จัดการออเดอร์ลูกค้า", "ระบบสมาชิก CRM", "ปิดกะ / ลิ้นชักเงินสด",
-            "จัดการเมนูและเพิ่มเมนู", "เมนู สูตร และสต็อก", "ค่าใช้จ่ายและกำไรสุทธิ",
-            "สรุปบัญชีรายวัน", "จุดคุ้มทุน & โปรโมชั่น", "รายงานยอดขายและกราฟ",
-            "ตั้งเป้าหมายยอดขาย", "วิเคราะห์ความเสี่ยง"
-        ]
-        menu_icons = [
-            "cup-hot-fill", "box-seam", "people-fill", "shop",
-            "plus-slash-minus", "journal-bookmark-fill", "cash-coin",
-            "graph-up-arrow", "bar-chart-fill", "shield-exclamation", "bullseye", "safe-fill"
-        ]
-    else:
-        menu_options = ["POS สั่งอาหาร", "จัดการออเดอร์ลูกค้า", "ระบบสมาชิก CRM"]
-        menu_icons = ["cup-hot-fill", "box-seam", "people-fill"]
+    menu_options = [
+        "POS สั่งอาหาร", "จัดการออเดอร์ลูกค้า", "ระบบสมาชิก CRM", "ปิดกะ / ลิ้นชักเงินสด",
+        "จัดการเมนูและเพิ่มเมนู", "เมนู สูตร และสต็อก", "ค่าใช้จ่ายและกำไรสุทธิ",
+        "สรุปบัญชีรายวัน", "จุดคุ้มทุน & โปรโมชั่น", "รายงานยอดขายและกราฟ",
+        "ตั้งเป้าหมายยอดขาย", "วิเคราะห์ความเสี่ยง"
+    ]
+    menu_icons = [
+        "cup-hot-fill", "box-seam", "people-fill", "shop",
+        "plus-slash-minus", "journal-bookmark-fill", "cash-coin",
+        "graph-up-arrow", "bar-chart-fill", "shield-exclamation", "bullseye", "safe-fill"
+    ]
 
     app_mode = option_menu(
         menu_title="เมนูการทำงาน",
@@ -373,8 +320,16 @@ with st.sidebar:
     include_vat_gp = st.checkbox(t["vat_gp"], value=True)
 
     inv_check_df = st.session_state.inventory_df
-    low_stock_items = [row["รายการ"] for _, row in inv_check_df.iterrows() if
-                       float(row["ขนาดบรรจุ"]) <= float(row.get("ขั้นต่ำแจ้งเตือน", 20.0))]
+    low_stock_items = []
+    for _, row in inv_check_df.iterrows():
+        try:
+            qty_val = float(row.get("คงเหลือ", 0)) if pd.notna(row.get("คงเหลือ")) else 0.0
+            min_val = float(row.get("ขั้นต่ำแจ้งเตือน", 20.0)) if pd.notna(row.get("ขั้นต่ำแจ้งเตือน")) else 20.0
+            if qty_val <= min_val:
+                low_stock_items.append(str(row["รายการ"]))
+        except:
+            pass
+
     if low_stock_items:
         st.error(f"{t['low_stock']} **{', '.join(low_stock_items)}**")
 
@@ -388,8 +343,7 @@ if app_mode in ["POS สั่งอาหาร", "POS Order System"]:
     col_pos_main, col_cart = st.columns([3, 1])
 
     with col_pos_main:
-        all_categories = ["ทั้งหมด (All)"] + list(
-            set([info.get("category", "📦 อื่นๆ") for info in st.session_state.delivery_menu_db.values()]))
+        all_categories = ["ทั้งหมด (All)"] + list(set([info.get("category", "📦 อื่นๆ") for info in st.session_state.delivery_menu_db.values()]))
         selected_category = st.selectbox("📂 กรองตามหมวดหมู่เครื่องดื่ม:", all_categories)
 
         filtered_items = []
@@ -405,11 +359,9 @@ if app_mode in ["POS สั่งอาหาร", "POS Order System"]:
             for idx, (m_name, m_info) in enumerate(filtered_items):
                 c_target = card_cols[idx % 3]
                 with c_target:
-                    st.image(m_info.get("image", "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300"),
-                             use_container_width=True)
+                    st.image(m_info.get("image", "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300"), use_container_width=True)
                     st.markdown(f"**{m_name}**")
-                    st.markdown(f"<span style='color: #8B5A2B; font-size: 13px;'>{m_info.get('category', '')}</span>",
-                                unsafe_allow_html=True)
+                    st.markdown(f"<span style='color: #8B5A2B; font-size: 13px;'>{m_info.get('category', '')}</span>", unsafe_allow_html=True)
                     st.markdown(f"**฿{m_info['price']:,.0f}**")
                     if st.button("➕ เพิ่ม", key=f"add_cart_{m_name}_{idx}", use_container_width=True):
                         st.session_state.cart.append({
@@ -421,8 +373,8 @@ if app_mode in ["POS สั่งอาหาร", "POS Order System"]:
 
     with col_cart:
         st.markdown(f"### {t['cart_title']}")
-        member_phones = ["ทั่วไป (ไม่ระบุสมาชิก)"] + st.session_state.member_db[
-            "Phone"].tolist() if not st.session_state.member_db.empty else ["ทั่วไป (ไม่ระบุสมาชิก)"]
+        customer_name_input = st.text_input("👤 ชื่อลูกค้า / โต๊ะ", value="ลูกค้าทั่วไป")
+        member_phones = ["ทั่วไป (ไม่ระบุสมาชิก)"] + st.session_state.member_db["Phone"].tolist() if not st.session_state.member_db.empty else ["ทั่วไป (ไม่ระบุสมาชิก)"]
         selected_member_phone = st.selectbox("⭐ สมาชิกสะสมแต้ม", member_phones)
         st.markdown("---")
 
@@ -448,11 +400,11 @@ if app_mode in ["POS สั่งอาหาร", "POS Order System"]:
                         "ต้นทุน/แก้ว": item["cost"], "ยอดขายรวม": item["price"], "ต้นทุนรวม": item["cost"],
                         "กำไรขั้นต้น": item["price"] - item["cost"], "สมาชิก": selected_member_phone
                     }])
-                    st.session_state.daily_sales_db = pd.concat([st.session_state.daily_sales_db, new_row],
-                                                                ignore_index=True)
+                    st.session_state.daily_sales_db = pd.concat([st.session_state.daily_sales_db, new_row], ignore_index=True)
+                    deduct_inventory_on_sale(item["name"], item["category"])
 
                 new_order_row = pd.DataFrame([{
-                    "OrderNo": order_no, "Time": current_time_str,
+                    "OrderNo": order_no, "Time": current_time_str, "CustomerName": customer_name_input,
                     "MenuName": f"หลายรายการ ({len(st.session_state.cart)} แก้ว)",
                     "Price": total_price, "Status": "รอดำเนินการ"
                 }])
@@ -484,45 +436,18 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
     tab_add, tab_edit = st.tabs(["➕ เพิ่มเมนูใหม่", "✏️ แก้ไขเมนูที่มีอยู่"])
 
     with tab_add:
-        new_n_cat = st.selectbox("เลือกหมวดหมู่เครื่องดื่ม",
-                                 ["☕ กาแฟ", "🍵 ชา", "🍫 นม/โกโก้", "🍹 อิตาเลียนโซดา", "🥛 เมนูนมสด", "📦 อื่นๆ"],
-                                 key="add_cat")
+        new_n_cat = st.selectbox("เลือกหมวดหมู่เครื่องดื่ม", ["☕ กาแฟ", "🍵 ชา", "🍫 นม/โกโก้", "🍹 อิตาเลียนโซดา", "🥛 เมนูนมสด", "📦 อื่นๆ"], key="add_cat")
 
         with st.form("add_menu_form", clear_on_submit=True):
             new_m_name = st.text_input("ชื่อเมนูเครื่องดื่ม (เช่น ลาเต้เย็นหวานน้อย, ชาไทยปั่น)")
             new_m_price = st.number_input("ราคาขายหน้าร้าน (บาท)", min_value=0.0, value=65.0)
 
-            st.markdown("---")
-            st.markdown("### 📋 สูตรส่วนผสมและวัตถุดิบเชิงลึกต่อ 1 แก้ว")
-
-            c_grams, m_mls, ing_1, ing_2, ing_3, ing_4, cup_units = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0
-
-            if "กาแฟ" in new_n_cat:
-                c_grams = st.number_input("ปริมาณเมล็ดกาแฟ / ช็อตเอสเพรสโซ (กรัม)", min_value=0.0, value=18.0)
-                m_mls = st.number_input("ปริมาณนมสดพาสเจอร์ไรส์ (มล.)", min_value=0.0, value=120.0)
-                ing_1 = st.number_input("ปริมาณนมข้นหวาน (มล.)", min_value=0.0, value=20.0)
-                ing_2 = st.number_input("ปริมาณนมข้นจืด (มล.)", min_value=0.0, value=10.0)
-                ing_3 = st.number_input("ปริมาณไซรัป / น้ำตาลแต่งหวาน (มล./กรัม)", min_value=0.0, value=10.0)
-                ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
-            elif "ชา" in new_n_cat:
-                c_grams = st.number_input("ปริมาณผงชา / ใบชา (กรัม)", min_value=0.0, value=15.0)
-                m_mls = st.number_input("ปริมาณนมสด (มล.)", min_value=0.0, value=60.0)
-                ing_1 = st.number_input("ปริมาณนมข้นหวาน (มล.)", min_value=0.0, value=30.0)
-                ing_2 = st.number_input("ปริมาณนมข้นจืด (มล.)", min_value=0.0, value=20.0)
-                ing_3 = st.number_input("ปริมาณน้ำร้อนสำหรับสกัดชา (มล.)", min_value=0.0, value=100.0)
-                ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
-            else:
-                c_grams = st.number_input("ปริมาณวัตถุดิบหลัก (กรัม/มล.)", min_value=0.0, value=30.0)
-                m_mls = st.number_input("ปริมาณนม/ของเหลว (มล.)", min_value=0.0, value=140.0)
-                ing_4 = st.number_input("ปริมาณน้ำแข็ง (กรัม)", min_value=0.0, value=150.0)
-
+            c_grams, m_mls, cup_units = 18.0, 120.0, 1.0
             cup_units = st.number_input("จำนวนชุดแก้ว + ฝาปิด + หลอดดูด (ชุด)", min_value=0.0, value=1.0)
-            auto_cost_calc = calculate_auto_cost(c_grams + ing_1, m_mls + ing_2, cup_units)
+            auto_cost_calc = calculate_auto_cost(c_grams, m_mls, cup_units)
 
             st.info(f"💡 ต้นทุนคำนวณอัตโนมัติ: **฿{auto_cost_calc:,.2f}** ต่อแก้ว")
-            uploaded_file = st.file_uploader("🖼️ อัปโหลดรูปภาพเมนู", type=["jpg", "jpeg", "png"],
-                                             key="add_img_detailed")
-
+            uploaded_file = st.file_uploader("🖼️ อัปโหลดรูปภาพเมนู", type=["jpg", "jpeg", "png"], key="add_img_detailed")
             submitted = st.form_submit_button("➕ บันทึกเมนูใหม่เข้าสู่ระบบ", use_container_width=True)
 
         if submitted:
@@ -578,25 +503,86 @@ elif app_mode in ["จัดการเมนูและเพิ่มเม�
 
 elif app_mode in ["สรุปบัญชีรายวัน", "Daily Accounting Summary"]:
     show_back_button()
-    st.markdown("<div class='main-title'>📑 สรุปบัญชีรายวัน (Daily Accounting & Cash Flow)</div>",
-                unsafe_allow_html=True)
+    st.markdown("<div class='main-title'>📑 สรุปบัญชีรายวัน (Daily Accounting & Cash Flow)</div>", unsafe_allow_html=True)
     selected_date_acc = st.date_input("📅 เลือกวันที่", datetime.date.today())
-    st.info(f"แสดงข้อมูลบัญชีประจำวันที่: {selected_date_acc}")
 
-elif app_mode in ["จัดการออเดอร์ลูกค้า", "Order Management"]:
+    sales_df = st.session_state.daily_sales_db
+    expenses_df = st.session_state.expenses_db
+    date_str = str(selected_date_acc)
+
+    day_sales = sales_df[sales_df["วันที่"] == date_str] if not sales_df.empty else pd.DataFrame()
+    day_expenses = expenses_df[expenses_df["วันที่"] == date_str] if not expenses_df.empty else pd.DataFrame()
+
+    total_rev = day_sales["ยอดขายรวม"].sum() if not day_sales.empty else 0.0
+    total_qty = day_sales["จำนวน (แก้ว)"].sum() if not day_sales.empty else 0.0
+    gross_p = day_sales["กำไรขั้นต้น"].sum() if not day_sales.empty else 0.0
+    total_exp = day_expenses["จำนวนเงิน (บาท)"].sum() if not day_expenses.empty else 0.0
+    net_p = gross_p - total_exp
+
+    col_a1, col_a2, col_a3, col_a4 = st.columns(4)
+    col_a1.metric("💰 ยอดขายรวม", f"฿{total_rev:,.2f}")
+    col_a2.metric("🥤 จำนวนแก้วขายได้", f"{total_qty:,.0f} แก้ว")
+    col_a3.metric("📈 กำไรขั้นต้น", f"฿{gross_p:,.2f}")
+    col_a4.metric("💵 กำไรสุทธิ (หักค่าใช้จ่าย)", f"฿{net_p:,.2f}")
+
+    st.markdown("---")
+    st.subheader(f"📋 รายละเอียดยอดขายประจำวันที่ {date_str}")
+    if not day_sales.empty:
+        st.dataframe(day_sales, use_container_width=True)
+    else:
+        st.info("ไม่มีรายการขายในวันที่เลือกนี้")
+
+    st.subheader(f"💸 รายละเอียดค่าใช้จ่ายอื่นๆ ประจำวันที่ {date_str}")
+    if not day_expenses.empty:
+        st.dataframe(day_expenses, use_container_width=True)
+    else:
+        st.info("ไม่มีรายการค่าใช้จ่ายในวันที่เลือกนี้")
+
+elif app_mode in ["จัดการออเดอร์ลูกค้า", "Customer Orders"]:
     show_back_button()
-    st.markdown(f"<div class='main-title'>{t['receipt_header']}</div>", unsafe_allow_html=True)
+    st.markdown("<div class='main-title'>🖨️ พิมพ์ใบเสร็จความร้อน & จัดการออเดอร์</div>", unsafe_allow_html=True)
+
+    with st.form("clear_orders_form"):
+        clear_btn = st.form_submit_button("🗑️ ล้างออเดอร์ที่เสร็จสิ้นแล้วทั้งหมด")
+        if clear_btn:
+            if "orders_db" in st.session_state and not st.session_state.orders_db.empty:
+                st.session_state.orders_db = st.session_state.orders_db[st.session_state.orders_db["Status"] != "เสร็จสิ้น"]
+                save_orders()
+                st.success("ล้างออเดอร์ที่เสร็จสิ้นเรียบร้อย!")
+                st.rerun()
+            else:
+                st.warning("ไม่มีข้อมูลออเดอร์ในระบบ")
+
+    st.markdown("---")
     if st.session_state.orders_db.empty:
         st.info("ยังไม่มีออเดอร์ในระบบ")
     else:
         for idx, row in st.session_state.orders_db.iterrows():
-            cols = st.columns([3, 1, 1])
-            cols[0].write(f"**{row['OrderNo']}** | {row['MenuName']} | ฿{row['Price']:,.2f} | สถานะ: {row['Status']}")
-            if row["Status"] == "รอดำเนินการ":
-                if cols[1].button("🟡 เสร็จสิ้น", key=f"s2_{idx}"):
-                    st.session_state.orders_db.at[idx, "Status"] = "เสร็จสิ้น"
-                    save_orders()
-                    st.rerun()
+            cust_name = row.get("CustomerName", "ลูกค้าทั่วไป")
+            with st.expander(f"📦 {row['OrderNo']} | ลูกค้า: {cust_name} | ฿{row['Price']:,.2f} | สถานะ: {row['Status']}"):
+                col_info, col_print = st.columns([2, 1])
+                with col_info:
+                    st.write(f"**เวลาที่สั่ง:** {row['Time']}")
+                    st.write(f"**ชื่อลูกค้า:** {cust_name}")
+                    st.write(f"**รายการ:** {row['MenuName']}")
+                    st.write(f"**ราคารวม:** ฿{row['Price']:,.2f}")
+                    st.write(f"**สถานะปัจจุบัน:** {row['Status']}")
+
+                    if row["Status"] == "รอดำเนินการ":
+                        with st.form(f"complete_form_{idx}"):
+                            comp_sub = st.form_submit_button("🟡 ทำเครื่องหมายว่าเสร็จสิ้น")
+                            if comp_sub:
+                                st.session_state.orders_db.at[idx, "Status"] = "เสร็จสิ้น"
+                                save_orders()
+                                st.success(f"อัปเดตสถานะออเดอร์เรียบร้อย!")
+                                st.rerun()
+
+                with col_print:
+                    st.markdown("#### พิมพ์ใบเสร็จ")
+                    if st.button(f"🖨️ พิมพ์สลิป (58mm)", key=f"print_58_{idx}"):
+                        st.code(f"========== CAFE ==========\nID: {row['OrderNo']}\nTOTAL: ฿{row['Price']:,.2f}\n==========================", language="text")
+                    if st.button(f"🖨️ พิมพ์สลิป (80mm)", key=f"print_80_{idx}"):
+                        st.code(f"============ CAFE ============\nID: {row['OrderNo']}\nTOTAL: ฿{row['Price']:,.2f}\n==============================", language="text")
             st.markdown("---")
 
 elif app_mode in ["ระบบสมาชิก CRM", "CRM & Member Points"]:
@@ -607,8 +593,7 @@ elif app_mode in ["ระบบสมาชิก CRM", "CRM & Member Points"]:
         m_name = st.text_input(t["member_name"])
         if st.form_submit_button(t["add_member_btn"]):
             if m_phone and m_name:
-                new_m = pd.DataFrame(
-                    [{"Phone": m_phone, "Name": m_name, "Points": 0, "RegisterDate": str(datetime.date.today())}])
+                new_m = pd.DataFrame([{"Phone": m_phone, "Name": m_name, "Points": 0, "RegisterDate": str(datetime.date.today())}])
                 st.session_state.member_db = pd.concat([st.session_state.member_db, new_m], ignore_index=True)
                 save_members()
                 st.success("สมัครสมาชิกสำเร็จ!")
@@ -620,8 +605,11 @@ elif app_mode in ["ปิดกะ / ลิ้นชักเงินสด", "
     st.markdown(f"<div class='main-title'>{t['shift_header']}</div>", unsafe_allow_html=True)
     float_cash = st.number_input(t["open_cash"], value=1000.0)
     st.metric(t["expected_cash"], f"฿{float_cash:,.2f}")
-    if st.button(t["close_shift_btn"], type="primary"):
-        st.success("ปิดกะสำเร็จ!")
+
+    with st.form("close_shift_form"):
+        close_btn = st.form_submit_button(t["close_shift_btn"], type="primary")
+        if close_btn:
+            st.success("ปิดกะสำเร็จและบันทึกยอดลิ้นชักเรียบร้อย!")
 
 elif app_mode in ["ค่าใช้จ่ายและกำไรสุทธิ", "Expenses & Net Profit"]:
     show_back_button()
@@ -631,8 +619,7 @@ elif app_mode in ["ค่าใช้จ่ายและกำไรสุท�
         e_cat = st.selectbox("หมวด", ["ค่าเช่า", "ค่าน้ำ/ไฟ", "เงินเดือน", "อื่นๆ"])
         e_amt = st.number_input("จำนวนเงิน (บาท)", value=1000.0)
         if st.form_submit_button("บันทึกค่าใช้จ่าย"):
-            new_e = pd.DataFrame([{"วันที่": str(datetime.date.today()), "รายการค่าใช้จ่าย": e_name, "หมวดหมู่": e_cat,
-                                   "จำนวนเงิน (บาท)": e_amt}])
+            new_e = pd.DataFrame([{"วันที่": str(datetime.date.today()), "รายการค่าใช้จ่าย": e_name, "หมวดหมู่": e_cat, "จำนวนเงิน (บาท)": e_amt}])
             st.session_state.expenses_db = pd.concat([st.session_state.expenses_db, new_e], ignore_index=True)
             save_expenses()
             st.success("บันทึกสำเร็จ!")
@@ -640,7 +627,7 @@ elif app_mode in ["ค่าใช้จ่ายและกำไรสุท�
 
 elif app_mode in ["รายงานยอดขายและกราฟ", "Sales Report & Charts"]:
     show_back_button()
-    st.markdown("<div class='main-title'>📊 รายงานยอดขายและ Line Notify</div>", unsafe_allow_html=True)
+    st.markdown("<div class='main-title'>📊 รายงานยอดขายและกราฟ</div>", unsafe_allow_html=True)
     sales_df = st.session_state.daily_sales_db
     if not sales_df.empty:
         st.metric("ยอดขายรวมทั้งสิ้น", f"฿{sales_df['ยอดขายรวม'].sum():,.2f}")
@@ -670,4 +657,65 @@ elif app_mode in ["วิเคราะห์ความเสี่ยง", "
 elif app_mode in ["เมนู สูตร และสต็อก", "Menu, Recipe & Stock"]:
     show_back_button()
     st.markdown("<div class='main-title'>📦 คลังวัตถุดิบและจัดการสต็อก</div>", unsafe_allow_html=True)
-    st.dataframe(st.session_state.inventory_df, use_container_width=True)
+
+    with st.expander("➕ เพิ่มรายการวัตถุดิบใหม่เข้าระบบ", expanded=False):
+        with st.form("inventory_add_form", clear_on_submit=True):
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                f_cat = st.selectbox("หมวดหมู่", ["🫘 วัตถุดิบหลัก", "🥛 วัตถุดิบหลัก", "🧋 วัตถุดิบหลัก", "🧁 ส่วนผสมปรุงรส", "📦 บรรจุภัณฑ์"])
+                f_name = st.text_input("ชื่อรายการวัตถุดิบ")
+            with c2:
+                f_price = st.number_input("ราคาซื้อ (บาท)", min_value=0.0, value=100.0)
+                f_size = st.number_input("ขนาดบรรจุ", min_value=0.1, value=1000.0)
+            with c3:
+                f_unit = st.text_input("หน่วยย่อย (เช่น กรัม, มล., ชุด)", value="กรัม")
+                f_qty = st.number_input("ปริมาณคงเหลือปัจจุบัน", min_value=0.0, value=500.0)
+                f_min = st.number_input("จุดต่ำสุดแจ้งเตือน", min_value=0.0, value=50.0)
+
+            submit_btn = st.form_submit_button("บันทึกข้อมูล", use_container_width=True)
+
+            if submit_btn:
+                if f_name:
+                    new_row = {
+                        "หมวดหมู่": f_cat, "รายการ": f_name, "ราคาซื้อ (บาท)": f_price,
+                        "ขนาดบรรจุ": f_size, "หน่วย": f_unit, "คงเหลือ": f_qty, "ขั้นต่ำแจ้งเตือน": f_min
+                    }
+                    st.session_state.inventory_df = pd.concat([st.session_state.inventory_df, pd.DataFrame([new_row])], ignore_index=True)
+                    save_inventory()
+                    st.success(f"เพิ่มรายการ '{f_name}' สำเร็จเรียบร้อย!")
+                    st.rerun()
+
+    st.divider()
+
+    clean_inv_df = st.session_state.inventory_df.dropna(subset=["รายการ"]).copy()
+    clean_inv_df["ราคาซื้อ (บาท)"] = pd.to_numeric(clean_inv_df["ราคาซื้อ (บาท)"], errors="coerce").fillna(0.0)
+    clean_inv_df["ขนาดบรรจุ"] = pd.to_numeric(clean_inv_df["ขนาดบรรจุ"], errors="coerce").fillna(1.0)
+    clean_inv_df["คงเหลือ"] = pd.to_numeric(clean_inv_df["คงเหลือ"], errors="coerce").fillna(0.0)
+    clean_inv_df["ขั้นต่ำแจ้งเตือน"] = pd.to_numeric(clean_inv_df["ขั้นต่ำแจ้งเตือน"], errors="coerce").fillna(0.0)
+    clean_inv_df["หน่วย"] = clean_inv_df["หน่วย"].fillna("หน่วย")
+
+    clean_inv_df["ต้นทุน/หน่วยย่อย (บาท)"] = (
+        clean_inv_df["ราคาซื้อ (บาท)"] / clean_inv_df["ขนาดบรรจุ"].replace(0, 1)
+    ).round(4)
+
+    st.subheader("📋 แก้ไข/จัดการรายการวัตถุดิบในระบบ (อัปเดตอัตโนมัติทันที)")
+    st.info("💡 สามารถคลิกแก้ไขตัวเลขหรือข้อความในตารางด้านล่างนี้ได้เลย ระบบจะทำการคำนวณและบันทึกข้อมูลลงไฟล์ให้อัตโนมัติทันทีที่คุณพิมพ์เสร็จ")
+
+    edited_inventory_df = st.data_editor(
+        clean_inv_df,
+        use_container_width=True,
+        num_rows="dynamic",
+        key="inventory_live_editor"
+    )
+
+    if "ต้นทุน/หน่วยย่อย (บาท)" in edited_inventory_df.columns:
+        to_save_df = edited_inventory_df.drop(columns=["ต้นทุน/หน่วยย่อย (บาท)"])
+    else:
+        to_save_df = edited_inventory_df
+
+    to_save_df = to_save_df.dropna(subset=["รายการ"])
+
+    if not to_save_df.equals(st.session_state.inventory_df):
+        st.session_state.inventory_df = to_save_df
+        save_inventory()
+        st.toast("⚡ บันทึกการแก้ไขสต็อกอัตโนมัติเรียบร้อยแล้ว!", icon="💾")
